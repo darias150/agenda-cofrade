@@ -67,7 +67,8 @@ if (require.main === module) (async () => {
     const t = temporada(+fecha.slice(0, 4));
     if (!config.todoElAnio && (fecha < t.inicio || fecha > t.fin)) fin(`${fecha} está fuera de temporada (${t.inicio} → ${t.fin})`);
     if (process.env.COMPROBAR_HORA === '1' && horaMadrid() < config.hora) fin(`en Madrid aún no son las ${config.hora}:00`);
-    if (fs.existsSync(path.join(carpeta, 'publicacion.json'))) fin(`${fecha} ya estaba preparado`);
+    // Solo cuenta como hecho si se llegó a publicar (las pruebas en ensayo no dejan resultado.json)
+    if (fs.existsSync(path.join(carpeta, 'resultado.json'))) fin(`${fecha} ya estaba publicado`);
   }
 
   // Calendario siempre recién descargado
