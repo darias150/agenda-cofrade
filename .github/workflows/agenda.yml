@@ -1,0 +1,86 @@
+name: Agenda cofrade diaria
+
+on:
+  schedule:
+    # GitHub usa hora UTC. Se lanza varias veces y el script decide:
+    # solo publica si en Madrid ya son las 6:00 y hoy no se ha publicado todavía.
+    # 04:00 UTC = 6:00 en horario de verano · 05:00 UTC = 6:00 en invierno · 06:30 UTC = reintento
+    - cron: '0 4 * * *'
+    - cron: '0 5 * * *'
+    - cron: '30 6 * * *'
+  workflow_dispatch:
+    inputs:
+      fecha:
+        description: 'Fecha AAAA-MM-DD (vacío = hoy)'
+        required: false
+      ensayo:
+        description: 'Ensayo: genera la imagen pero NO publica'
+        type: boolean
+        default: true
+      forzar:
+        description: 'Ignorar temporada, hora y "ya preparado"'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency: agenda
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Fuente de emojis
+        run: sudo apt-get install -y fonts-noto-color-emoji > /dev/null
+
+      - name: Preparar imagen y textos
+        id: prep
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+          COMPROBAR_HORA: '1'
+          FORZAR: ${{ inputs.forzar && '1' || '' }}
+        run: node preparar.js ${{ inputs.fecha }}
+
+      - name: Subir imágenes al repositorio (para que tengan URL pública)
+        if: steps.prep.outputs.hay == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add publicadas
+          git commit -m "Agenda ${{ steps.prep.outputs.fecha }}"
+          git push
+          sleep 15
+
+      - name: Publicar en redes
+        env:
+          URL_BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}
+          ENSAYO: ${{ inputs.ensayo && '1' || '' }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          META_TOKEN: ${{ secrets.META_TOKEN }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+        run: node enviar.js ${{ inputs.fecha }}
+
+      - name: Guardar resultado
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add publicadas || true
+          git diff --cached --quiet || (git commit -m "Resultado publicación" && git push)
