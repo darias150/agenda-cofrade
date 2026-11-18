@@ -114,10 +114,11 @@ function html(fecha, eventos, pag = 1, pags = 1) {
   .lugar svg { width: 1em; height: 1em; fill: var(--c); flex: none; }
   .fig { position: absolute; right: 18px; bottom: 0; height: 112%; max-height: calc(var(--s) * 210px); }
   /* Cartel / foto como marca de agua: ocupa la derecha y se funde hacia el texto */
-  .ev { overflow: hidden; }
+  /* flex-shrink 0: si no caben, la tarjeta NO se encoge (cortando el texto); así ajustar() reduce el tamaño */
+  .ev { overflow: hidden; flex-shrink: 0; }
   .ev > .hora, .ev > .escudo, .ev > .txt { position: relative; z-index: 1; }
   /* Varios actos: la foto ocupa la franja derecha y se funde antes de llegar al texto */
-  .con-cartel { padding-right: 25%; }
+  .con-cartel { padding-right: 29%; }
   .cartel { position: absolute; top: 0; right: 0; bottom: 0; width: 36%; background-size: cover;
     -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.45) 30%, #000 62%);
             mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.45) 30%, #000 62%); }
