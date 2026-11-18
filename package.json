@@ -1,0 +1,14 @@
+{
+  "name": "agenda-cofrade",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Genera y publica cada mañana la agenda cofrade del día",
+  "scripts": {
+    "imagen": "node render.js",
+    "preparar": "node preparar.js",
+    "enviar": "node enviar.js"
+  },
+  "dependencies": {
+    "puppeteer-core": "23.11.1"
+  }
+}
