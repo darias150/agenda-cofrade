@@ -70,21 +70,25 @@ function tarjeta(ev, conFigura) {
   </div>`;
 }
 
-function html(fecha, eventos, pag = 1, pags = 1) {
+// historia = true: versión vertical 1080x1920 para las historias de Instagram
+// (cabecera y pie más altos para que la interfaz de Instagram no tape nada)
+function html(fecha, eventos, pag = 1, pags = 1, historia = false) {
   const conFigura = eventos.length <= 6;
   return `<!doctype html><html lang="es"><head><meta charset="utf-8">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=block" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; }
-  html, body { width: 1080px; height: 1350px; overflow: hidden; }
+  html, body { width: 1080px; height: ${historia ? 1920 : 1350}px; overflow: hidden; }
   body { --s: 1; font-family: 'Source Sans 3', sans-serif; color: #2A2222;
     background: #F6F1EA radial-gradient(circle at 50% 0, #FFFFFF 0, #F6F1EA 60%); display: flex; flex-direction: column; }
   header { background: ${MARCA}; color: #fff; padding: 44px 64px 40px; display: flex; align-items: center; gap: 32px;
     position: relative; box-shadow: 0 6px 0 #C9A44C; }
-  .pag { margin-left: auto; align-self: flex-start; font-weight: 700; font-size: 30px; color: #E9C46A;
+  .pag { position: absolute; top: ${historia ? 150 : 16}px; right: 24px; font-weight: 700; font-size: 30px; color: #E9C46A;
     border: 2px solid #E9C46A; border-radius: 999px; padding: 4px 18px; }
-  .logo { width: 104px; height: 104px; flex: none; }
-  h1 { font-family: 'Cinzel', serif; font-size: 66px; letter-spacing: 3px; line-height: 1; }
+  .logo { width: 132px; height: 132px; flex: none; border-radius: 18px; border: 3px solid #fff;
+    box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+  .ante { font-family: 'Cinzel', serif; font-weight: 700; color: #E9C46A; font-size: 30px; letter-spacing: 12px; line-height: 1; margin-bottom: 8px; }
+  h1 { font-family: 'Cinzel', serif; font-size: 58px; letter-spacing: 2px; line-height: 1; white-space: nowrap; }
   h1 span { color: #E9C46A; }
   .fecha { font-size: 34px; margin-top: 12px; opacity: .92; }
   .fecha::first-letter { text-transform: uppercase; }
@@ -130,11 +134,11 @@ function html(fecha, eventos, pag = 1, pags = 1) {
             mask-image: linear-gradient(180deg, #000 72%, transparent 100%); }
   .vacio { margin: auto; text-align: center; font-size: 40px; color: #8A7B7B; }
   footer { background: #2A1B1E; color: #E9C46A; text-align: center; padding: 22px; font-size: 30px; font-weight: 600; letter-spacing: 2px; }
+  ${historia ? 'header { padding-top: 210px; } footer { padding: 34px 22px 200px; }' : ''}
 </style></head><body>
 <header>
-  <svg class="logo" viewBox="0 0 100 100"><rect width="100" height="100" rx="12" fill="#fff"/><rect x="6" y="6" width="88" height="88" rx="8" fill="${MARCA}"/>
-    <path d="M50 18 L76 82 H64 L50 44 L36 82 H24 Z" fill="#fff"/></svg>
-  <div><h1>AGENDA <span>COFRADE</span></h1><div class="fecha">${fechaLarga(fecha)}</div></div>
+  <img class="logo" src="../assets/logo-vc.png" alt="">
+  <div><div class="ante">AGENDA</div><h1>VALLADOLID <span>COFRADE</span></h1><div class="fecha">${fechaLarga(fecha)}</div></div>
   ${pags > 1 ? `<div class="pag">${pag}/${pags}</div>` : ''}
 </header>
 <main class="lista${eventos.length === 1 ? ' uno' : ''}">
@@ -166,29 +170,34 @@ async function render(fecha, opciones = {}) {
   const MAX = 8;
   const pags = Math.max(1, Math.ceil(eventos.length / MAX));
   const porPag = Math.ceil(eventos.length / pags) || 0;
-  const imagenes = [];
+  const imagenes = [], historias = [];
   const browser = await puppeteer.launch({ executablePath: EDGE, args: ['--no-sandbox', '--allow-file-access-from-files'] });
   try {
     const page = await browser.newPage();
-    await page.setViewport({ width: 1080, height: 1350, deviceScaleFactor: 1 });
-    for (let p = 1; p <= pags; p++) {
-      const nombre = `${opciones.nombre || fecha}${pags > 1 ? `-${p}` : ''}`;
-      // El HTML va en out/ para que encuentre ../assets
-      fs.mkdirSync(OUT, { recursive: true });
+    // El HTML va en out/ para que encuentre ../assets
+    fs.mkdirSync(OUT, { recursive: true });
+    async function captura(nombre, contenido, alto) {
+      await page.setViewport({ width: 1080, height: alto, deviceScaleFactor: 1 });
       const htmlPath = path.join(OUT, `${nombre}.html`);
-      fs.writeFileSync(htmlPath, html(fecha, eventos.slice((p - 1) * porPag, p * porPag), p, pags));
+      fs.writeFileSync(htmlPath, contenido);
       await page.goto('file:///' + htmlPath.replace(/\\/g, '/'), { waitUntil: 'networkidle0', timeout: 60000 });
       await page.evaluate(() => document.fonts.ready);
       await page.evaluate(ajustar);
       const jpg = path.join(salida, `${nombre}.jpg`);
       await page.screenshot({ path: jpg, type: 'jpeg', quality: 92 });
-      imagenes.push(jpg);
+      return jpg;
+    }
+    for (let p = 1; p <= pags; p++) {
+      const nombre = `${opciones.nombre || fecha}${pags > 1 ? `-${p}` : ''}`;
+      const trozo = eventos.slice((p - 1) * porPag, p * porPag);
+      imagenes.push(await captura(nombre, html(fecha, trozo, p, pags), 1350));
+      if (opciones.historias) historias.push(await captura(`${nombre}-historia`, html(fecha, trozo, p, pags, true), 1920));
     }
   } finally {
     await browser.close();
   }
   console.log(`${fecha}: ${eventos.length} actos en ${imagenes.length} imagen(es)`);
-  return { eventos, imagenes };
+  return { eventos, imagenes, historias };
 }
 
 module.exports = { render, clasificar, fechaLarga, hoyMadrid };
