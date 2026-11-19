@@ -21,7 +21,23 @@ const REDES = [require('./publicar/telegram'), instagram, facebook, require('./p
   const resultado = fs.existsSync(resPath) ? JSON.parse(fs.readFileSync(resPath, 'utf8')) : {};
   const base = (process.env.URL_BASE || '').replace(/\/$/, '');
   const urls = datos.imagenes.map(n => `${base}/publicadas/${fecha}/${n}`);
-  const ensayo = process.env.ENSAYO === '1';
+  // PRUEBA=1: prueba INVISIBLE de todas las redes configuradas (comprueba claves y subida de imagen, sin publicar).
+  // El resultado va a prueba.json (no cuenta como publicado).
+  const prueba = process.env.PRUEBA === '1';
+  const ensayo = process.env.ENSAYO === '1' && !prueba;
+  if (prueba) {
+    const res = { hora: new Date().toISOString() };
+    let fallo = false;
+    for (const red of REDES) {
+      if (!red.activo()) { res[red.nombre] = 'sin configurar'; continue; }
+      try { res[red.nombre] = await red.probar({ carpeta, datos, urls }); }
+      catch (e) { res[red.nombre] = { ok: false, error: e.message }; fallo = true; }
+    }
+    fs.writeFileSync(path.join(carpeta, 'prueba.json'), JSON.stringify(res, null, 2));
+    console.log('PRUEBA (sin publicar):', JSON.stringify(res, null, 2));
+    if (fallo) process.exit(1);
+    return;
+  }
 
   let fallos = 0;
   for (const red of REDES) {
