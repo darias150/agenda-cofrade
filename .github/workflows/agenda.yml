@@ -1,13 +1,17 @@
 name: Agenda cofrade diaria
 
 on:
+  # Disparo PUNTUAL: cron-job.org llama a la API de GitHub cada día a las 6:00 (ver LEEME).
+  repository_dispatch:
+    types: [agenda]
   schedule:
-    # GitHub usa hora UTC. Se lanza varias veces y el script decide:
-    # solo publica si en Madrid ya son las 6:00 y hoy no se ha publicado todavía.
-    # 04:00 UTC = 6:00 en horario de verano · 05:00 UTC = 6:00 en invierno · 06:30 UTC = reintento
-    - cron: '0 4 * * *'
-    - cron: '0 5 * * *'
-    - cron: '30 6 * * *'
+    # Solo de RESERVA: los horarios de GitHub se retrasan a veces varias horas.
+    # Se lanza varias veces y el script decide: solo publica si en Madrid ya son las 6:00,
+    # aún no pasa de la hora límite y hoy no se ha publicado todavía.
+    # (minutos "raros" porque a las horas en punto GitHub va más saturado)
+    - cron: '17 4 * * *'
+    - cron: '17 5 * * *'
+    - cron: '47 6 * * *'
   workflow_dispatch:
     inputs:
       fecha:
@@ -48,7 +52,8 @@ jobs:
         id: prep
         env:
           CHROME_PATH: /usr/bin/google-chrome
-          COMPROBAR_HORA: '1'
+          # Lanzado a mano (Run workflow) no mira la hora; los automáticos sí
+          COMPROBAR_HORA: ${{ github.event_name != 'workflow_dispatch' && '1' || '' }}
           FORZAR: ${{ inputs.forzar && '1' || '' }}
         run: node preparar.js ${{ inputs.fecha }}
 
