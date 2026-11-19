@@ -1,7 +1,7 @@
 // Instagram y Facebook (API Graph de Meta).
 // Secrets: META_TOKEN (token de página de larga duración), FB_PAGE_ID, IG_USER_ID
 // Instagram descarga la imagen desde una URL pública: por eso antes se suben al repositorio.
-const VERSION = process.env.META_API_VERSION || 'v21.0';
+const VERSION = process.env.META_API_VERSION || 'v27.0';
 const GRAPH = `https://graph.facebook.com/${VERSION}`;
 
 async function graph(ruta, params = {}, metodo = 'POST') {
