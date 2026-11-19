@@ -1,12 +1,14 @@
 {
-  "hora": "2026-11-19T20:19:29.090Z",
+  "hora": "2026-11-19T21:24:42.484Z",
   "telegram": {
     "ok": true,
     "bot": "@agendacofrade_vll_bot"
   },
   "instagram": {
-    "ok": false,
-    "error": "Meta 17841421779286288/media: (#10) Requires instagram_content_publish permission to manage the object"
+    "ok": true,
+    "cuenta": "@valladolidcofrade",
+    "via": "usuario del sistema del portfolio",
+    "imagen": "descargada y procesada por Instagram (sin publicar)"
   },
   "facebook": {
     "ok": true,
