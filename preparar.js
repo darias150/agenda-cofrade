@@ -58,6 +58,17 @@ function textos(fecha, eventos) {
   };
 }
 
+// Cuentas de X a etiquetar en la imagen: la línea "X: @..." del evento o, si no, la de su cofradía (máx. 10)
+function etiquetasX(eventos) {
+  const vistas = new Map();
+  for (const e of eventos) {
+    for (const u of e.x || (e.cofradia && e.cofradia.x ? [e.cofradia.x] : [])) {
+      if (!vistas.has(u.toLowerCase())) vistas.set(u.toLowerCase(), u);
+    }
+  }
+  return [...vistas.values()].slice(0, 10);
+}
+
 // ---------- Principal ----------
 if (require.main === module) (async () => {
   const fecha = process.argv[2] || hoyMadrid();
@@ -79,14 +90,18 @@ if (require.main === module) (async () => {
   if (!r.ok) throw new Error(`No se pudo descargar el calendario: HTTP ${r.status}`);
   fs.writeFileSync(icsPath, await r.text());
 
-  const { eventos, imagenes } = await render(fecha, { ics: icsPath, salida: carpeta, nombre: 'agenda', saltarVacios: true });
+  const { eventos, imagenes, historias } = await render(fecha, { ics: icsPath, salida: carpeta, nombre: 'agenda', saltarVacios: true, historias: true });
   if (!eventos.length) fin(`no hay actos el ${fecha}`);
 
-  const datos = { fecha, imagenes: imagenes.map(i => path.basename(i)), actos: eventos.length, textos: textos(fecha, eventos) };
+  const datos = {
+    fecha, imagenes: imagenes.map(i => path.basename(i)), historias: historias.map(i => path.basename(i)),
+    actos: eventos.length, textos: textos(fecha, eventos),
+    etiquetasX: etiquetasX(eventos),
+  };
   fs.writeFileSync(path.join(carpeta, 'publicacion.json'), JSON.stringify(datos, null, 2));
   console.log(`Preparado ${fecha}: ${eventos.length} actos, ${imagenes.length} imagen(es) en ${carpeta}`);
   salida('hay', 'true');
   salida('fecha', fecha);
 })().catch(e => { console.error(e); process.exit(1); });
 
-module.exports = { pascua, temporada };
+module.exports = { pascua, temporada, etiquetasX };
