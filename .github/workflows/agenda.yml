@@ -25,6 +25,10 @@ on:
         description: 'Ignorar temporada, hora y "ya preparado"'
         type: boolean
         default: false
+      prueba:
+        description: 'PRUEBA INVISIBLE: comprueba las claves y la imagen en cada red SIN publicar nada'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -74,6 +78,7 @@ jobs:
         env:
           URL_BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}
           ENSAYO: ${{ inputs.ensayo && '1' || '' }}
+          PRUEBA: ${{ inputs.prueba && '1' || '' }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           META_TOKEN: ${{ secrets.META_TOKEN }}
