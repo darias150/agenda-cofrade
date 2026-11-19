@@ -1,0 +1,17 @@
+{
+  "x": {
+    "ok": true,
+    "id": "2123450795588747698",
+    "hora": "2026-11-19T16:18:16.409Z"
+  },
+  "instagram": {
+    "ok": false,
+    "error": "Meta 17841421779286288/media: (#10) Requires instagram_content_publish permission to manage the object",
+    "hora": "2026-11-19T16:18:17.662Z"
+  },
+  "facebook": {
+    "ok": true,
+    "id": "502071383149501_1622976636537635",
+    "hora": "2026-11-19T16:18:21.815Z"
+  }
+}
