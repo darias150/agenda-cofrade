@@ -1,11 +1,8 @@
 {
-  "hora": "2026-11-19T20:16:02.959Z",
-  "x": {
-    "ok": false,
-    "prueba": true,
-    "cuenta": "@VCofrade",
-    "imagenesSubidas": 1,
-    "textoQuePublicaria": "🗓️➡️ Agenda Cofrade de Actos y Cultos para hoy jueves 19 de noviembre:\n\n#SemanaSantaValladolid"
+  "hora": "2026-11-19T20:19:29.090Z",
+  "telegram": {
+    "ok": true,
+    "bot": "@agendacofrade_vll_bot"
   },
   "instagram": {
     "ok": false,
@@ -15,5 +12,12 @@
     "ok": true,
     "pagina": "Valladolid Cofrade",
     "imagen": "subida sin publicar y borrada"
+  },
+  "x": {
+    "ok": false,
+    "prueba": true,
+    "cuenta": "@VCofrade",
+    "imagenesSubidas": 1,
+    "textoQuePublicaria": "🗓️➡️ Agenda Cofrade de Actos y Cultos para hoy jueves 19 de noviembre:\n\n#SemanaSantaValladolid"
   }
 }
