@@ -33,7 +33,9 @@ async function llamar(url, opciones) {
 module.exports = {
   nombre: 'x',
   activo: () => ['X_API_KEY', 'X_API_SECRET', 'X_ACCESS_TOKEN', 'X_ACCESS_SECRET'].every(k => process.env[k]),
-  async publicar({ carpeta, datos }) {
+  // Prueba invisible: sube las imágenes (X las borra a las 24 h) y comprueba la cuenta, sin publicar
+  probar: args => module.exports.publicar(args, true),
+  async publicar({ carpeta, datos }, soloProbar = false) {
     const ids = [];
     for (const n of datos.imagenes.slice(0, 4)) {
       const form = new FormData();
@@ -49,6 +51,15 @@ module.exports = {
           body: JSON.stringify({ id, metadata: { alt_text: { text: datos.textos.alt.slice(0, 1000) } } }),
         });
       } catch (e) { console.warn('X: no se pudo poner el texto alternativo:', e.message); }
+    }
+    // Modo prueba: la imagen se ha subido (invisible, X la borra a las 24 h) pero NO se publica.
+    // Se comprueba además a qué cuenta pertenecen las claves.
+    if (soloProbar) {
+      const url = 'https://api.x.com/2/users/me';
+      const r = await fetch(url, { headers: { Authorization: cabeceraOAuth('GET', url) } });
+      const yo = await r.json();
+      if (!r.ok) throw new Error(`X ${url}: HTTP ${r.status} ${JSON.stringify(yo).slice(0, 300)}`);
+      return { ok: false, prueba: true, cuenta: '@' + yo.data.username, imagenesSubidas: ids.length, textoQuePublicaria: datos.textos.x };
     }
     const r = await llamar('https://api.x.com/2/tweets', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
