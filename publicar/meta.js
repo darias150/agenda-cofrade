@@ -45,6 +45,13 @@ async function cuentaInstagram() {
   return { ig, username };
 }
 
+// URLs de las versiones verticales (historias): misma carpeta que las del feed
+function urlsHistorias(urls, datos) {
+  if (!urls.length || !datos.historias) return [];
+  const base = urls[0].slice(0, urls[0].lastIndexOf('/') + 1);
+  return datos.historias.map(n => base + n);
+}
+
 const esperar = ms => new Promise(r => setTimeout(r, ms));
 
 // Instagram procesa cada contenedor antes de poder publicarlo
@@ -74,17 +81,34 @@ const instagram = {
     }
     await listo(contenedor);
     const { id } = await igGraph(`${ig}/media_publish`, { creation_id: contenedor });
-    return { ok: true, id, via: via() };
+    // Además, cada imagen vertical como historia. Si falla, la publicación del feed ya cuenta como hecha.
+    const historias = [];
+    for (const u of urlsHistorias(urls, datos)) {
+      try {
+        const h = (await igGraph(`${ig}/media`, { image_url: u, media_type: 'STORIES' })).id;
+        await listo(h);
+        historias.push((await igGraph(`${ig}/media_publish`, { creation_id: h })).id);
+      } catch (e) { historias.push('ERROR: ' + e.message); console.warn('Instagram: historia no publicada:', e.message); }
+    }
+    return { ok: true, id, historias, via: via() };
   },
   // Prueba invisible: Instagram descarga y procesa la imagen, pero NO se publica (el borrador caduca solo en 24 h)
   async probar({ urls, datos }) {
     const { ig, username } = await cuentaInstagram();
     const contenedor = (await igGraph(`${ig}/media`, { image_url: urls[0], caption: datos.textos.instagram })).id;
     await listo(contenedor);
+    let historia = 'no hay versión vertical';
+    const [uh] = urlsHistorias(urls, datos);
+    if (uh) {
+      const h = (await igGraph(`${ig}/media`, { image_url: uh, media_type: 'STORIES' })).id;
+      await listo(h);
+      historia = 'descargada y procesada por Instagram (sin publicar)';
+    }
     return {
       ok: true, cuenta: '@' + username,
       via: via(),
       imagen: 'descargada y procesada por Instagram (sin publicar)',
+      historia,
     };
   },
 };
