@@ -1,0 +1,28 @@
+{
+  "telegram": {
+    "ok": true,
+    "hora": "2026-11-19T21:49:54.791Z"
+  },
+  "instagram": {
+    "ok": true,
+    "id": "18019309001748224",
+    "historias": [
+      "18111559160259403"
+    ],
+    "via": "usuario del sistema del portfolio",
+    "hora": "2026-11-19T21:50:14.357Z"
+  },
+  "facebook": {
+    "ok": true,
+    "id": "502071383149501_1623233229845309",
+    "hora": "2026-11-19T21:50:17.752Z"
+  },
+  "x": {
+    "ok": true,
+    "id": "2123534354920194390",
+    "etiquetadas": [
+      "@PiedadVLL"
+    ],
+    "hora": "2026-11-19T21:50:18.457Z"
+  }
+}
