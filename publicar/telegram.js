@@ -1,70 +1,39 @@
-// X (Twitter): sube las imágenes (máx. 4) y publica el post. Firma OAuth 1.0a sin dependencias.
-// Secrets: X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET (de developer.x.com, con permiso "Read and write")
+// Telegram: te manda las imágenes con el texto a un chat (tú, un grupo o un canal).
+// Desde ahí se reenvían al canal de WhatsApp en un momento.
+// Secrets: TELEGRAM_TOKEN (de @BotFather) y TELEGRAM_CHAT_ID
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
 
-const enc = s => encodeURIComponent(s).replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase());
+const activo = () => !!(process.env.TELEGRAM_TOKEN && process.env.TELEGRAM_CHAT_ID);
 
-function cabeceraOAuth(metodo, url) {
-  const o = {
-    oauth_consumer_key: process.env.X_API_KEY,
-    oauth_nonce: crypto.randomBytes(16).toString('hex'),
-    oauth_signature_method: 'HMAC-SHA1',
-    oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
-    oauth_token: process.env.X_ACCESS_TOKEN,
-    oauth_version: '1.0',
-  };
-  // Con cuerpo JSON o multipart, solo se firman los parámetros oauth_*
-  const params = Object.keys(o).sort().map(k => `${enc(k)}=${enc(o[k])}`).join('&');
-  const base = [metodo, enc(url), enc(params)].join('&');
-  const clave = `${enc(process.env.X_API_SECRET)}&${enc(process.env.X_ACCESS_SECRET)}`;
-  o.oauth_signature = crypto.createHmac('sha1', clave).update(base).digest('base64');
-  return 'OAuth ' + Object.keys(o).sort().map(k => `${enc(k)}="${enc(o[k])}"`).join(', ');
+async function publicar({ carpeta, datos }) {
+  const api = `https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}`;
+  const form = new FormData();
+  form.append('chat_id', process.env.TELEGRAM_CHAT_ID);
+  const archivo = n => new Blob([fs.readFileSync(path.join(carpeta, n))], { type: 'image/jpeg' });
+
+  let metodo;
+  if (datos.imagenes.length === 1) {
+    metodo = 'sendPhoto';
+    form.append('photo', archivo(datos.imagenes[0]), datos.imagenes[0]);
+    form.append('caption', datos.textos.telegram);
+  } else {
+    metodo = 'sendMediaGroup';
+    form.append('media', JSON.stringify(datos.imagenes.map((n, i) => ({
+      type: 'photo', media: `attach://f${i}`, ...(i === 0 ? { caption: datos.textos.telegram } : {}),
+    }))));
+    datos.imagenes.forEach((n, i) => form.append(`f${i}`, archivo(n), n));
+  }
+  const r = await (await fetch(`${api}/${metodo}`, { method: 'POST', body: form })).json();
+  if (!r.ok) throw new Error(`Telegram: ${r.description}`);
+  return { ok: true };
 }
 
-async function llamar(url, opciones) {
-  const r = await fetch(url, { ...opciones, headers: { ...(opciones.headers || {}), Authorization: cabeceraOAuth('POST', url) } });
-  const texto = await r.text();
-  if (!r.ok) throw new Error(`X ${url}: HTTP ${r.status} ${texto.slice(0, 300)}`);
-  return texto ? JSON.parse(texto) : {};
+// Prueba invisible: solo comprueba que el bot existe (no manda nada)
+async function probar() {
+  const r = await (await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/getMe`)).json();
+  if (!r.ok) throw new Error(`Telegram: ${r.description}`);
+  return { ok: true, bot: '@' + r.result.username };
 }
 
-module.exports = {
-  nombre: 'x',
-  activo: () => ['X_API_KEY', 'X_API_SECRET', 'X_ACCESS_TOKEN', 'X_ACCESS_SECRET'].every(k => process.env[k]),
-  // Prueba invisible: sube las imágenes (X las borra a las 24 h) y comprueba la cuenta, sin publicar
-  probar: args => module.exports.publicar(args, true),
-  async publicar({ carpeta, datos }, soloProbar = false) {
-    const ids = [];
-    for (const n of datos.imagenes.slice(0, 4)) {
-      const form = new FormData();
-      form.append('media', new Blob([fs.readFileSync(path.join(carpeta, n))], { type: 'image/jpeg' }), n);
-      form.append('media_category', 'tweet_image');
-      const r = await llamar('https://api.x.com/2/media/upload', { method: 'POST', body: form });
-      const id = (r.data && r.data.id) || r.media_id_string;
-      ids.push(id);
-      // Texto alternativo (si falla, no impide publicar)
-      try {
-        await llamar('https://api.x.com/2/media/metadata', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id, metadata: { alt_text: { text: datos.textos.alt.slice(0, 1000) } } }),
-        });
-      } catch (e) { console.warn('X: no se pudo poner el texto alternativo:', e.message); }
-    }
-    // Modo prueba: la imagen se ha subido (invisible, X la borra a las 24 h) pero NO se publica.
-    // Se comprueba además a qué cuenta pertenecen las claves.
-    if (soloProbar) {
-      const url = 'https://api.x.com/2/users/me';
-      const r = await fetch(url, { headers: { Authorization: cabeceraOAuth('GET', url) } });
-      const yo = await r.json();
-      if (!r.ok) throw new Error(`X ${url}: HTTP ${r.status} ${JSON.stringify(yo).slice(0, 300)}`);
-      return { ok: false, prueba: true, cuenta: '@' + yo.data.username, imagenesSubidas: ids.length, textoQuePublicaria: datos.textos.x };
-    }
-    const r = await llamar('https://api.x.com/2/tweets', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: datos.textos.x, media: { media_ids: ids } }),
-    });
-    return { ok: true, id: r.data && r.data.id };
-  },
-};
+module.exports = { nombre: 'telegram', activo, publicar, probar };
