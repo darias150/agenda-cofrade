@@ -14,6 +14,8 @@ module.exports = {
 
   // Hora (Madrid) a partir de la cual se publica
   hora: 6,
+  // Si por un retraso de GitHub el aviso llega a partir de esta hora, ese día ya no se publica (24 = sin límite)
+  horaLimite: 12,
 
   web: 'www.valladolidcofrade.com',
   hashtags: '#SemanaSantaValladolid #Valladolid #Cuaresma',
