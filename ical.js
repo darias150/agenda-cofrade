@@ -32,9 +32,13 @@ const FOCO = { arriba: '15%', centro: '45%', abajo: '85%' };
 function leerCartel(desc) {
   const texto = desc.replace(/<a [^>]*href="([^"]+)"[^>]*>[^<]*<\/a>/gi, '$1').replace(/<[^>]+>/g, '\n')
     .replace(/&nbsp;| /g, ' ').replace(/&amp;/g, '&');
+  const res = {};
   const m = texto.match(/Cartel:\s*(https?:\/\/[^\s|"<]+)\s*(?:\|\s*(arriba|centro|abajo|\d{1,3}%))?/i);
-  if (!m) return {};
-  return { cartel: m[1], cartelFoco: m[2] ? (FOCO[m[2].toLowerCase()] || m[2]) : '30%' };
+  if (m) Object.assign(res, { cartel: m[1], cartelFoco: m[2] ? (FOCO[m[2].toLowerCase()] || m[2]) : '30%' });
+  // Línea opcional "X: @cuenta1 @cuenta2": cuentas a etiquetar en la imagen de X (manda sobre la de la cofradía)
+  const x = texto.match(/(?:^|\n)\s*X:\s*((?:@\w{1,15}[\s,]*)+)/i);
+  if (x) res.x = x[1].match(/@\w{1,15}/g).map(s => s.slice(1));
+  return res;
 }
 
 function parseICS(text) {
