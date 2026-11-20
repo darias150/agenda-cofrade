@@ -1,0 +1,30 @@
+{
+  "telegram": {
+    "ok": true,
+    "hora": "2026-11-20T05:01:53.537Z"
+  },
+  "instagram": {
+    "ok": true,
+    "id": "17999478681059577",
+    "historias": [
+      "18156039220533035"
+    ],
+    "via": "usuario del sistema del portfolio",
+    "hora": "2026-11-20T05:02:17.281Z"
+  },
+  "facebook": {
+    "ok": true,
+    "id": "502071383149501_1623525489816083",
+    "hora": "2026-11-20T05:02:20.692Z"
+  },
+  "x": {
+    "ok": true,
+    "id": "2123643084344795195",
+    "etiquetadas": [
+      "@PiedadVLL",
+      "@SagradaPasion",
+      "@nazarenovall"
+    ],
+    "hora": "2026-11-20T05:02:21.635Z"
+  }
+}
