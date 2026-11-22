@@ -1,0 +1,29 @@
+{
+  "telegram": {
+    "ok": true,
+    "hora": "2026-11-22T05:01:54.441Z"
+  },
+  "instagram": {
+    "ok": true,
+    "id": "17994226209074893",
+    "historias": [
+      "18149590612590303"
+    ],
+    "via": "usuario del sistema del portfolio",
+    "hora": "2026-11-22T05:02:17.573Z"
+  },
+  "facebook": {
+    "ok": true,
+    "id": "502071383149501_1625771509591481",
+    "hora": "2026-11-22T05:02:21.037Z"
+  },
+  "x": {
+    "ok": true,
+    "id": "2124367861460463693",
+    "etiquetadas": [
+      "@SagradaPasion",
+      "@PreciosaSangreV"
+    ],
+    "hora": "2026-11-22T05:02:21.924Z"
+  }
+}
