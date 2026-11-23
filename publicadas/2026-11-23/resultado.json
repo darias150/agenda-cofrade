@@ -1,0 +1,28 @@
+{
+  "telegram": {
+    "ok": true,
+    "hora": "2026-11-23T05:01:33.690Z"
+  },
+  "instagram": {
+    "ok": true,
+    "id": "18100477856675295",
+    "historias": [
+      "18109732217366832"
+    ],
+    "via": "usuario del sistema del portfolio",
+    "hora": "2026-11-23T05:02:01.847Z"
+  },
+  "facebook": {
+    "ok": true,
+    "id": "502071383149501_1626881166147182",
+    "hora": "2026-11-23T05:02:05.953Z"
+  },
+  "x": {
+    "ok": true,
+    "id": "2124730186532876485",
+    "etiquetadas": [
+      "@SagradaPasion"
+    ],
+    "hora": "2026-11-23T05:02:06.970Z"
+  }
+}
