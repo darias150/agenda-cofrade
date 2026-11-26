@@ -1,0 +1,28 @@
+{
+  "telegram": {
+    "ok": true,
+    "hora": "2026-11-26T05:01:54.387Z"
+  },
+  "instagram": {
+    "ok": true,
+    "id": "17939796834408686",
+    "historias": [
+      "18137900440738735"
+    ],
+    "via": "usuario del sistema del portfolio",
+    "hora": "2026-11-26T05:02:19.218Z"
+  },
+  "facebook": {
+    "ok": true,
+    "id": "502071383149501_1630393789129253",
+    "hora": "2026-11-26T05:02:22.521Z"
+  },
+  "x": {
+    "ok": true,
+    "id": "2125817419017179490",
+    "etiquetadas": [
+      "@CSagradaCena"
+    ],
+    "hora": "2026-11-26T05:02:23.366Z"
+  }
+}
