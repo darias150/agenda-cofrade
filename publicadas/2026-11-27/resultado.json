@@ -1,0 +1,29 @@
+{
+  "telegram": {
+    "ok": true,
+    "hora": "2026-11-27T05:01:38.343Z"
+  },
+  "instagram": {
+    "ok": true,
+    "id": "18100111418451425",
+    "historias": [
+      "17948332773368124"
+    ],
+    "via": "usuario del sistema del portfolio",
+    "hora": "2026-11-27T05:02:06.520Z"
+  },
+  "facebook": {
+    "ok": true,
+    "id": "502071383149501_1631586492343316",
+    "hora": "2026-11-27T05:02:10.756Z"
+  },
+  "x": {
+    "ok": true,
+    "id": "2126179757557727479",
+    "etiquetadas": [
+      "@SagradaPasion",
+      "@CSagradaCena"
+    ],
+    "hora": "2026-11-27T05:02:11.615Z"
+  }
+}
