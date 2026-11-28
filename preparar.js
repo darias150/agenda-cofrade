@@ -47,10 +47,15 @@ function textos(fecha, eventos) {
   const cabecera = `🗓️ Agenda Cofrade de Actos y Cultos para hoy ${corta}:`;
   const lista = eventos.map(lineaActo).join('\n\n');
   const largo = `${cabecera}\n\n${lista}\n\nℹ️ Más información en ${config.web}\n\n${config.hashtags}`;
+  // Instagram: menciona a las cofradías del día (les llega el aviso). Instagram admite como mucho 20 menciones.
+  const menciones = [...new Set(eventos.map(e => e.cofradia && e.cofradia.ig).filter(Boolean))].slice(0, 20).map(u => '@' + u).join(' ');
+  const largoIg = menciones ? `${cabecera}\n\n${lista}\n\nℹ️ Más información en ${config.web}\n\n${menciones}\n\n${config.hashtags}` : largo;
   return {
-    instagram: largo.slice(0, 2200),
+    instagram: largoIg.slice(0, 2200),
     facebook: largo,
-    x: `🗓️➡️ Agenda Cofrade de Actos y Cultos para hoy ${corta}:\n\n${config.hashtags.split(' ')[0]}`,
+    x: config.xTextoLargo
+      ? `${cabecera}\n\n${lista}\n\n${config.hashtags}`
+      : `🗓️➡️ Agenda Cofrade de Actos y Cultos para hoy ${corta}:\n\n${config.hashtags.split(' ')[0]}`,
     telegram: largo.slice(0, 1024),
     // Texto alternativo de la imagen (accesibilidad)
     alt: `Agenda cofrade del ${larga}. ` + eventos.map(e =>
