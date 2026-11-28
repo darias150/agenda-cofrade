@@ -62,6 +62,14 @@ function parseICS(text) {
     else if (name === 'DESCRIPTION') Object.assign(cur, leerCartel(unescape(value)));
     else if (name === 'STATUS') cur.estado = value;
     else if (name === 'RRULE') cur.rrule = value;
+    else if (name === 'UID') cur.uid = value;
+    // Días quitados de la serie (p. ej. el día que el culto va a otra hora, metido como evento aparte)
+    else if (name === 'EXDATE') {
+      cur.exdates = cur.exdates || [];
+      for (const v of value.split(',')) { const f = toMadrid(prop, v.trim()); if (f) cur.exdates.push(f.fecha); }
+    }
+    // Un día de la serie cambiado a mano en Google: sale como evento suelto y la serie no debe pintarlo
+    else if (name === 'RECURRENCE-ID') { const f = toMadrid(prop, value); if (f) cur.recurrenceId = f.fecha; }
   }
   return events.filter(e => e.estado !== 'CANCELLED');
 }
@@ -115,11 +123,19 @@ const norm = t => (t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase
 
 function eventosDelDia(icsPath, fecha) {
   const todos = parseICS(fs.readFileSync(icsPath, 'utf8'));
+  const cambiados = new Set(todos.filter(e => e.recurrenceId && e.uid).map(e => e.uid + '|' + e.recurrenceId));
   return todos
+    .filter(e => !(e.rrule && ((e.exdates || []).includes(fecha) || cambiados.has(e.uid + '|' + fecha))))
     .map(e => ({ e, o: ocurrencia(e, fecha) }))
     .filter(x => x.o)
     .map(({ e, o }) => {
       let { dia, total } = o;
+      // Día de una serie metido aparte (con otra hora): toma su "día X de N" de la serie
+      if (dia === null && !e.rrule) {
+        const s = todos.find(x => x.rrule && x !== e && ((x.exdates || []).includes(fecha) || x.uid === e.uid) && norm(x.titulo) === norm(e.titulo));
+        const os = s && ocurrencia(s, fecha);
+        if (os && os.dia) ({ dia, total } = os);
+      }
       // Caso 3: el culto se metió como eventos sueltos con el mismo título en días seguidos
       if (dia === null && !e.rrule) {
         const mismos = todos.filter(x => !x.rrule && norm(x.titulo) === norm(e.titulo)).map(x => x.fecha).sort();
