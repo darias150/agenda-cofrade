@@ -1,0 +1,32 @@
+{
+  "telegram": {
+    "ok": true,
+    "hora": "2026-11-28T05:01:42.279Z"
+  },
+  "instagram": {
+    "ok": true,
+    "id": "18119878003818327",
+    "historias": [
+      "18031913249873418"
+    ],
+    "via": "usuario del sistema del portfolio",
+    "hora": "2026-11-28T05:02:05.609Z"
+  },
+  "facebook": {
+    "ok": true,
+    "id": "502071383149501_1632722675563031",
+    "hora": "2026-11-28T05:02:10.659Z"
+  },
+  "x": {
+    "ok": true,
+    "id": "2126542145762853203",
+    "etiquetadas": [
+      "@CSagradaCena",
+      "@Descen_VA",
+      "@ExaltacionVa",
+      "@JResucitado",
+      "@despojadova"
+    ],
+    "hora": "2026-11-28T05:02:11.733Z"
+  }
+}
