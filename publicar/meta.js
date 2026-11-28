@@ -118,26 +118,42 @@ const facebook = {
   activo: () => !!(process.env.META_TOKEN && process.env.FB_PAGE_ID),
   async publicar({ urls, datos }) {
     const page = process.env.FB_PAGE_ID;
+    let id;
     if (urls.length === 1) {
       const r = await graph(`${page}/photos`, { url: urls[0], message: datos.textos.facebook, alt_text_custom: datos.textos.alt });
-      return { ok: true, id: r.post_id || r.id };
+      id = r.post_id || r.id;
+    } else {
+      const fotos = [];
+      for (const u of urls) fotos.push((await graph(`${page}/photos`, { url: u, published: 'false' })).id);
+      id = (await graph(`${page}/feed`, {
+        message: datos.textos.facebook,
+        attached_media: JSON.stringify(fotos.map(f => ({ media_fbid: f }))),
+      })).id;
     }
-    const fotos = [];
-    for (const u of urls) fotos.push((await graph(`${page}/photos`, { url: u, published: 'false' })).id);
-    const r = await graph(`${page}/feed`, {
-      message: datos.textos.facebook,
-      attached_media: JSON.stringify(fotos.map(id => ({ media_fbid: id }))),
-    });
-    return { ok: true, id: r.id };
+    // Además, cada imagen vertical como historia de la página (la misma que la de Instagram).
+    // Se sube la foto sin publicar y luego se publica como historia. Si falla, el feed ya cuenta como hecho.
+    const historias = [];
+    for (const u of urlsHistorias(urls, datos)) {
+      try {
+        const foto = (await graph(`${page}/photos`, { url: u, published: 'false' })).id;
+        const r = await graph(`${page}/photo_stories`, { photo_id: foto });
+        historias.push(r.post_id || r.id || 'ok');
+      } catch (e) { historias.push('ERROR: ' + e.message); console.warn('Facebook: historia no publicada:', e.message); }
+    }
+    return { ok: true, id, historias };
   },
-  // Prueba invisible: sube la foto SIN publicar (nadie la ve) y la borra enseguida
-  async probar({ urls }) {
+  // Prueba invisible: sube la foto (y la vertical de la historia) SIN publicar (nadie la ve) y las borra enseguida.
+  // La historia en sí no se puede probar sin publicarla.
+  async probar({ urls, datos }) {
     const page = process.env.FB_PAGE_ID;
     const { name } = await graph(page, { fields: 'name' }, 'GET');
-    const { id } = await graph(`${page}/photos`, { url: urls[0], published: 'false' });
-    let borrada = true;
-    try { await graph(id, {}, 'DELETE'); } catch { borrada = false; }
-    return { ok: true, pagina: name, imagen: borrada ? 'subida sin publicar y borrada' : `subida sin publicar (id ${id}, no se pudo borrar; no es visible)` };
+    const subirYBorrar = async u => {
+      const { id } = await graph(`${page}/photos`, { url: u, published: 'false' });
+      try { await graph(id, {}, 'DELETE'); return 'subida sin publicar y borrada'; }
+      catch { return `subida sin publicar (id ${id}, no se pudo borrar; no es visible)`; }
+    };
+    const [uh] = urlsHistorias(urls, datos);
+    return { ok: true, pagina: name, imagen: await subirYBorrar(urls[0]), historia: uh ? 'vertical ' + await subirYBorrar(uh) : 'no hay versión vertical' };
   },
 };
 
